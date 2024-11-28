@@ -6,3 +6,6 @@ __pycache__/
 
 # SSL Certificates
 certs/
+
+# Pytests
+.pytest_cache/

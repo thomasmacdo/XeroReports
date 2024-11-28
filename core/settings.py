@@ -166,3 +166,19 @@ XERO_API_CONFIG = {
 
 
 DJANGO_ALLOW_ASYNC_UNSAFE = False
+
+if "pytest" in sys.argv[0]:
+    DATABASES["default"] = {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "xero_db",
+        "USER": "xero_user",
+        "PASSWORD": "xero_password",
+        "HOST": "localhost",
+        "PORT": "5432",
+        "TIME_ZONE": "UTC",
+        "ATOMIC_REQUESTS": True,
+        "CONN_MAX_AGE": 0,
+        "CONN_HEALTH_CHECKS": False,
+        "OPTIONS": {},
+        "AUTOCOMMIT": True,
+    }
