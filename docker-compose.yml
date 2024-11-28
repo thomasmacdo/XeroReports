@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${SQL_DATABASE}
+      POSTGRES_USER: ${SQL_USER}
+      POSTGRES_PASSWORD: ${SQL_PASSWORD}
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "443:443"
+    volumes:
+      - .:/app/src
+      - ./certs/cert.pem:/etc/ssl/certs/cert.pem
+      - ./certs/key.pem:/etc/ssl/private/key.pem
+    depends_on:
+      - db
+    environment:
+      DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE}
+      SQL_ENGINE: django.db.backends.postgresql
+      SQL_DATABASE: ${SQL_DATABASE}
+      SQL_USER: ${SQL_USER}
+      SQL_PASSWORD: ${SQL_PASSWORD}
+      SQL_HOST: db
+      SQL_PORT: 5432
+      PYTHONPATH: /app/src
+      UVICORN_WORKERS: 4
+      UVICORN_RELOAD: "true"
+      UVICORN_LOG_LEVEL: "info"
+    command: uvicorn core.asgi:application --host 0.0.0.0 --port 443 --ssl-keyfile /etc/ssl/private/key.pem --ssl-certfile /etc/ssl/certs/cert.pem --reload --workers 4
+
+volumes:
+  postgres_data:
