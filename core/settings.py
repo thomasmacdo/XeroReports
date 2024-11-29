@@ -1,5 +1,4 @@
 import os
-import sys
 from datetime import timedelta
 from pathlib import Path
 
@@ -7,16 +6,10 @@ from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-env_path = Path(__file__).resolve().parent / ".env"
-load_dotenv(env_path)
-
-SECRET_KEY = os.environ.get("SECRET_KEY")
-if not SECRET_KEY:
-    raise ValueError("SECRET_KEY environment variable is not set")
-
-DEBUG = int(os.environ.get("DEBUG", default=0))
-
-ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost").split(" ")
+load_dotenv()
+SECRET_KEY = os.environ.get("SECRET_KEY", "default-secret-key")
+DEBUG = int(os.environ.get("DEBUG", 0))
+ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost").split()
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -123,13 +116,9 @@ XERO_SCOPES = [
     "accounting.settings.read",
     "offline_access",
 ]
-SESSION_ENGINE = "django.contrib.sessions.backends.db"
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SAMESITE = "Lax"
 
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
-SESSION_COOKIE_SECURE = False if DEBUG else True
+SESSION_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_NAME = "xero_sessionid"
@@ -138,15 +127,6 @@ SESSION_SAVE_EVERY_REQUEST = True
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-        },
-    },
-    "root": {
-        "handlers": ["console"],
-        "level": "DEBUG",
-    },
 }
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -164,21 +144,4 @@ XERO_API_CONFIG = {
     "CONNECTIONS_URL": "https://api.xero.com/connections",
 }
 
-
 DJANGO_ALLOW_ASYNC_UNSAFE = False
-
-if "pytest" in sys.argv[0]:
-    DATABASES["default"] = {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "xero_db",
-        "USER": "xero_user",
-        "PASSWORD": "xero_password",
-        "HOST": "localhost",
-        "PORT": "5432",
-        "TIME_ZONE": "UTC",
-        "ATOMIC_REQUESTS": True,
-        "CONN_MAX_AGE": 0,
-        "CONN_HEALTH_CHECKS": False,
-        "OPTIONS": {},
-        "AUTOCOMMIT": True,
-    }
