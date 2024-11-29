@@ -100,13 +100,14 @@ class XeroCallbackView(APIView):
                     status=status.HTTP_404_NOT_FOUND,
                 )
 
-            XeroTenant.objects.create(
-                tenant_id=connections[0]["tenantId"],
-                auth_event_id=connections[0]["authEventId"],
-                user=user,
-                tenant_type=connections[0]["tenantType"],
-                tenant_name=connections[0]["tenantName"],
-            )
+            for connection in connections:
+                XeroTenant.objects.create(
+                    tenant_id=connection["tenantId"],
+                    auth_event_id=connection["authEventId"],
+                    user=user,
+                    tenant_type=connection["tenantType"],
+                    tenant_name=connection["tenantName"],
+                )
 
             return Response(
                 {"status": "success", "message": "Successfully connected to Xero"}

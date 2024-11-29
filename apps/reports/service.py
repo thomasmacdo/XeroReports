@@ -30,18 +30,18 @@ class XeroReportService:
         self.xero_service = AsyncXeroAuthService()
         self.user = request.user
 
-    def generate_report(self, tenant_id: str, period: date, account_type: str) -> dict:
+    def generate_report(self, tenant_id: str, to_date: date, account_type: str) -> dict:
         """
         Generate a new report based on the provided parameters.
         This is the synchronous interface for external use.
         """
         try:
-            return self._generate_report(tenant_id, period, account_type)
+            return self._generate_report(tenant_id, to_date, account_type)
         except TokenExpiredError:
             logger.info("Access token expired, refreshing token...")
             self.xero_service.refresh_token(self.user)
             try:
-                return self._generate_report(tenant_id, period, account_type)
+                return self._generate_report(tenant_id, to_date, account_type)
             except Exception as e:
                 logger.error(f"Error generating report after token refresh: {e}")
                 raise ValueError("Error generating report after token refresh")
@@ -49,12 +49,8 @@ class XeroReportService:
             logger.error(f"Error generating report: {e}")
             raise ValueError("Error generating report")
 
-    def _generate_report(self, tenant_id: str, period: date, account_type: str) -> dict:
+    def _generate_report(self, tenant_id: str, to_date: date, account_type: str) -> dict:
         """Generate report using parallel API requests"""
-        next_month = (period.month % 12) + 1
-        year_adjust = period.year + (1 if period.month == 12 else 0)
-        to_date = date(year_adjust, next_month, 1) - timedelta(days=1)
-
         token = self.xero_service.get_token(self.user)
 
         async def fetch_data():
@@ -71,9 +67,8 @@ class XeroReportService:
         try:
             accounts_data, trial_balance_data = async_to_sync(fetch_data)()
         except TokenExpiredError:
-            raise  # Propagate the token expired error for handling
+            raise
 
-        # Create report structure
         report = {}
         for account in accounts_data.get("Accounts", []):
             report[account["AccountID"]] = {

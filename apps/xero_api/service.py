@@ -14,6 +14,11 @@ from .models import XeroAuthState, XeroTenant, XeroToken
 logger = logging.getLogger(__name__)
 
 
+class TokenRefreshError(Exception):
+    """Raised when token refresh fails and reauthorization is needed."""
+    def __init__(self, authorization_url):
+        self.authorization_url = authorization_url
+        super().__init__("Token refresh failed, reauthorization required")
 class AsyncXeroAuthService:
     """Manages Xero OAuth2 authentication flow and token operations.
 
@@ -108,23 +113,32 @@ class AsyncXeroAuthService:
         if not token_data:
             raise Exception("No token found")
 
-        refresh_token = token_data["refresh"]
-        response = requests.post(
-            self.config["TOKEN_URL"],
-            data={
-                "grant_type": "refresh_token",
-                "refresh_token": refresh_token,
-            },
-            auth=(self.client_id, self.client_secret),
-        )
+        try:
+            refresh_token = token_data["refresh_token"]
+            response = requests.post(
+                self.config["TOKEN_URL"],
+                data={
+                    "grant_type": "refresh_token",
+                    "refresh_token": refresh_token,
+                },
+                auth=(self.client_id, self.client_secret),
+            )
 
-        if response.status_code != 200:
-            logger.error(f"Token refresh failed: {response.text}")
-            raise Exception(f"Failed to refresh token: {response.text}")
+            if response.status_code != 200:
+                logger.error(f"Token refresh failed: {response.text}")
+                user = User.objects.get(id=user_id)
+                auth_url = self.generate_authorization_url(user)
+                raise TokenRefreshError(auth_url)
 
-        new_token_data = response.json()
-        self.store_token(user_id, new_token_data)
-        return new_token_data
+            new_token_data = response.json()
+            self.store_token(user_id, new_token_data)
+            return new_token_data
+
+        except requests.RequestException as e:
+            logger.error(f"Token refresh request failed: {e}")
+            user = User.objects.get(id=user_id)
+            auth_url = self.generate_authorization_url(user)
+            raise TokenRefreshError(auth_url)
 
     def store_token(self, user_id: int, token_data: dict[str, Any]) -> None:
         """Synchronous version for token storage."""
@@ -132,11 +146,11 @@ class AsyncXeroAuthService:
             user_id=user_id, defaults={"token": token_data}
         )
 
-    def get_tenant(self, user_id: int) -> list | None:
+    def get_tenant(self, user_id: int, tenant_name:str) -> list | None:
         """Retrieve Xero tenant for the current user."""
         logger.info(f"Fetching tenants for user {user_id}")
         try:
-            return XeroTenant.objects.filter(user_id=user_id).first()
+            return XeroTenant.objects.filter(user_id=user_id, tenant_name=tenant_name).get()
         except Exception as e:
             logger.error(f"Error fetching tenants for user {user_id}: {str(e)}")
             return None
