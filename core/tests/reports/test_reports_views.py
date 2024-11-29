@@ -31,25 +31,50 @@ class TestXeroReportService:
                                     "Cells": [
                                         {
                                             "Value": "Sales (200)",
-                                            "Attributes": [{"Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3", "Id": "account"}]
+                                            "Attributes": [
+                                                {
+                                                    "Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3",
+                                                    "Id": "account",
+                                                }
+                                            ],
                                         },
                                         {
                                             "Value": "",
-                                            "Attributes": [{"Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3", "Id": "account"}]
+                                            "Attributes": [
+                                                {
+                                                    "Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3",
+                                                    "Id": "account",
+                                                }
+                                            ],
                                         },
                                         {
                                             "Value": "",
-                                            "Attributes": [{"Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3", "Id": "account"}]
+                                            "Attributes": [
+                                                {
+                                                    "Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3",
+                                                    "Id": "account",
+                                                }
+                                            ],
                                         },
                                         {
                                             "Value": "100",
-                                            "Attributes": [{"Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3", "Id": "account"}]
+                                            "Attributes": [
+                                                {
+                                                    "Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3",
+                                                    "Id": "account",
+                                                }
+                                            ],
                                         },
                                         {
                                             "Value": "",
-                                            "Attributes": [{"Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3", "Id": "account"}]
-                                        }
-                                    ]
+                                            "Attributes": [
+                                                {
+                                                    "Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3",
+                                                    "Id": "account",
+                                                }
+                                            ],
+                                        },
+                                    ],
                                 }
                             ],
                         },
@@ -62,7 +87,10 @@ class TestXeroReportService:
     def mock_accounts_response(self):
         return {
             "Accounts": [
-                {"AccountID": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3", "Name": "Test Account"},
+                {
+                    "AccountID": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3",
+                    "Name": "Test Account",
+                },
             ]
         }
 
@@ -107,5 +135,7 @@ class TestXeroReportService:
             )
 
         assert len(result["Accounts"]) == 1
-        assert result["Accounts"][0]["AccountID"] == "c563b607-fb0e-4d06-9ddb-76fdeef20ae3"
+        assert (
+            result["Accounts"][0]["AccountID"] == "c563b607-fb0e-4d06-9ddb-76fdeef20ae3"
+        )
         assert result["Accounts"][0]["Name"] == "Test Account"

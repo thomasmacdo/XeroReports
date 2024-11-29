@@ -49,7 +49,9 @@ class XeroReportService:
             logger.error(f"Error generating report: {e}")
             raise ValueError("Error generating report")
 
-    def _generate_report(self, tenant_id: str, to_date: date, account_type: str) -> dict:
+    def _generate_report(
+        self, tenant_id: str, to_date: date, account_type: str
+    ) -> dict:
         """Generate report using parallel API requests"""
         token = self.xero_service.get_token(self.user)
 
@@ -130,7 +132,7 @@ class XeroReportService:
                 rowType = row["Rows"][0]["RowType"]
                 if rowType == "SummaryRow":
                     continue
-                
+
                 cells = row["Rows"][0]["Cells"]
                 account_id = cells[0]["Attributes"][0]["Value"]
 

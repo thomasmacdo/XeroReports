@@ -35,25 +35,50 @@ class TestXeroReportService:
                                     "Cells": [
                                         {
                                             "Value": "Sales (200)",
-                                            "Attributes": [{"Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3", "Id": "account"}]
+                                            "Attributes": [
+                                                {
+                                                    "Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3",
+                                                    "Id": "account",
+                                                }
+                                            ],
                                         },
                                         {
                                             "Value": "",
-                                            "Attributes": [{"Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3", "Id": "account"}]
+                                            "Attributes": [
+                                                {
+                                                    "Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3",
+                                                    "Id": "account",
+                                                }
+                                            ],
                                         },
                                         {
                                             "Value": "",
-                                            "Attributes": [{"Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3", "Id": "account"}]
+                                            "Attributes": [
+                                                {
+                                                    "Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3",
+                                                    "Id": "account",
+                                                }
+                                            ],
                                         },
                                         {
                                             "Value": "16576.04",
-                                            "Attributes": [{"Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3", "Id": "account"}]
+                                            "Attributes": [
+                                                {
+                                                    "Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3",
+                                                    "Id": "account",
+                                                }
+                                            ],
                                         },
                                         {
                                             "Value": "26630.00",
-                                            "Attributes": [{"Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3", "Id": "account"}]
-                                        }
-                                    ]
+                                            "Attributes": [
+                                                {
+                                                    "Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3",
+                                                    "Id": "account",
+                                                }
+                                            ],
+                                        },
+                                    ],
                                 }
                             ],
                         },
@@ -64,7 +89,11 @@ class TestXeroReportService:
 
     @pytest.fixture
     def mock_accounts_response(self):
-        return {"Accounts": [{"AccountID": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3", "Name": "Sales"}]}
+        return {
+            "Accounts": [
+                {"AccountID": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3", "Name": "Sales"}
+            ]
+        }
 
     @pytest.fixture
     def mock_failed_response(self):
@@ -118,7 +147,9 @@ class TestXeroReportService:
 
         logger.info(result)
         assert len(result["Accounts"]) == 1
-        assert result["Accounts"][0]["AccountID"] == "c563b607-fb0e-4d06-9ddb-76fdeef20ae3"
+        assert (
+            result["Accounts"][0]["AccountID"] == "c563b607-fb0e-4d06-9ddb-76fdeef20ae3"
+        )
 
     @patch("apps.reports.service.async_to_sync")
     def test_generate_report(

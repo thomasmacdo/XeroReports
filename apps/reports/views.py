@@ -1,5 +1,5 @@
-from datetime import date, timedelta
 import logging
+from datetime import date, timedelta
 from typing import Any
 
 from django.core.exceptions import ValidationError
@@ -68,10 +68,14 @@ class ReportViewSet(viewsets.ModelViewSet):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer.validated_data["period"] = self._last_day_of_month(serializer.validated_data["period"])
-        
+        serializer.validated_data["period"] = self._last_day_of_month(
+            serializer.validated_data["period"]
+        )
+
         try:
-            tenant = self._validate_and_get_tenant(request.user, serializer.validated_data["tenant_name"])
+            tenant = self._validate_and_get_tenant(
+                request.user, serializer.validated_data["tenant_name"]
+            )
             service = XeroReportService(request)
             report_data = service.generate_report(
                 tenant_id=tenant.tenant_id,
@@ -91,9 +95,9 @@ class ReportViewSet(viewsets.ModelViewSet):
             return Response(
                 {
                     "error": "Token refresh failed",
-                    "authorization_url": e.authorization_url
+                    "authorization_url": e.authorization_url,
                 },
-                status=status.HTTP_401_UNAUTHORIZED
+                status=status.HTTP_401_UNAUTHORIZED,
             )
         except (ValidationError, ValueError, XeroApiError) as e:
             logger.warning(f"Report generation failed: {str(e)}")
@@ -114,7 +118,10 @@ class ReportViewSet(viewsets.ModelViewSet):
         return tenant
 
     def _create_report_from_data(self, user, validated_data, report_data):
-        logger.info("Creating report from generated data... \nPeriod: %s", validated_data["period"])
+        logger.info(
+            "Creating report from generated data... \nPeriod: %s",
+            validated_data["period"],
+        )
         report = Report.objects.create(
             user=user,
             period=validated_data["period"],

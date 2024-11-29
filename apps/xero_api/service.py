@@ -16,9 +16,12 @@ logger = logging.getLogger(__name__)
 
 class TokenRefreshError(Exception):
     """Raised when token refresh fails and reauthorization is needed."""
+
     def __init__(self, authorization_url):
         self.authorization_url = authorization_url
         super().__init__("Token refresh failed, reauthorization required")
+
+
 class AsyncXeroAuthService:
     """Manages Xero OAuth2 authentication flow and token operations.
 
@@ -150,7 +153,9 @@ class AsyncXeroAuthService:
         """Retrieve Xero tenant for the current user."""
         logger.info(f"Fetching tenants for user {user_id}")
         try:
-            return XeroTenant.objects.filter(user_id=user_id, tenant_name=tenant_name).first()
+            return XeroTenant.objects.filter(
+                user_id=user_id, tenant_name=tenant_name
+            ).first()
         except Exception as e:
             logger.error(f"Error fetching tenants for user {user_id}: {str(e)}")
             return None
