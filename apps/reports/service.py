@@ -36,7 +36,6 @@ class XeroReportService:
         This is the synchronous interface for external use.
         """
         try:
-            logger.info(f"Generating report for tenant {tenant_id}...")
             return self._generate_report(tenant_id, period, account_type)
         except TokenExpiredError:
             logger.info("Access token expired, refreshing token...")
@@ -128,21 +127,30 @@ class XeroReportService:
             trial_balances = {}
 
             rows = data["Reports"][0]["Rows"]
-            for row in rows[1:]:
-                if row["RowType"] == "Section":
-                    continue
 
+            ytd_debit_value_index, ytd_credit_value_index = 3, 4
+
+            # Skip the first row (header)
+            for row in rows[1:]:
+                rowType = row["Rows"][0]["RowType"]
+                if rowType == "SummaryRow":
+                    continue
+                
                 cells = row["Rows"][0]["Cells"]
                 account_id = cells[0]["Attributes"][0]["Value"]
-                debit_value = float(cells[3].get("Value") or 0)
-                credit_value = float(cells[4].get("Value") or 0)
+
+                debit_value = float(cells[ytd_debit_value_index].get("Value") or 0)
+                credit_value = float(cells[ytd_credit_value_index].get("Value") or 0)
                 trial_balances[account_id] = debit_value - credit_value
 
             return trial_balances
 
         except httpx.HTTPError as e:
-            logger.error(f"HTTP error occurred: {e}")
-            raise ValueError(f"Failed to fetch trial balance: {e}")
+            if response.status_code == 401:
+                raise TokenExpiredError(
+                    "Access token expired while fetching trial balance."
+                )
+            raise ValueError("Error fetching trial balance from Xero API")
 
     async def _get_accounts(
         self,
@@ -169,5 +177,6 @@ class XeroReportService:
             return response.json()
 
         except httpx.HTTPError as e:
-            logger.error(f"HTTP error occurred: {e}")
-            raise ValueError(f"Failed to fetch accounts: {e}")
+            if response.status_code == 401:
+                raise TokenExpiredError("Access token expired while fetching accounts.")
+            raise ValueError("Error fetching accounts from Xero API")
