@@ -1,10 +1,12 @@
+import logging
 from datetime import date
+
 import pytest
-from apps.reports.models import AccountValue, Report
-from core.tests.factories import UserFactory
 from django.contrib.auth import authenticate
 from django.test.client import RequestFactory
-import logging
+
+from apps.reports.models import AccountValue, Report
+from core.tests.factories import UserFactory
 
 
 @pytest.fixture(autouse=True)

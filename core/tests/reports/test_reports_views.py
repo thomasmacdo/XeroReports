@@ -1,7 +1,9 @@
-import pytest
-import httpx
-from unittest.mock import patch, AsyncMock, MagicMock
 from datetime import date
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import httpx
+import pytest
+
 from apps.reports.service import XeroReportService
 
 pytestmark = pytest.mark.asyncio

@@ -1,9 +1,11 @@
-from datetime import date, timedelta
-from typing import Dict, Any
 import asyncio
 import logging
+from datetime import date, timedelta
+from typing import Any, Dict
+
 import httpx
 from asgiref.sync import async_to_sync
+
 from apps.xero_api.service import AsyncXeroAuthService
 
 logger = logging.getLogger(__name__)
@@ -28,7 +30,7 @@ class XeroReportService:
         self.xero_service = AsyncXeroAuthService()
         self.user = request.user
 
-    def generate_report(self, tenant_id: str, period: date, account_type: str) -> Dict:
+    def generate_report(self, tenant_id: str, period: date, account_type: str) -> dict:
         """
         Generate a new report based on the provided parameters.
         This is the synchronous interface for external use.
@@ -48,7 +50,7 @@ class XeroReportService:
             logger.error(f"Error generating report: {e}")
             raise ValueError("Error generating report")
 
-    def _generate_report(self, tenant_id: str, period: date, account_type: str) -> Dict:
+    def _generate_report(self, tenant_id: str, period: date, account_type: str) -> dict:
         """Generate report using parallel API requests"""
         next_month = (period.month % 12) + 1
         year_adjust = period.year + (1 if period.month == 12 else 0)
@@ -87,8 +89,8 @@ class XeroReportService:
         client: httpx.AsyncClient,
         tenant_id: str,
         date: date,
-        token: Dict[str, Any],
-    ) -> Dict[str, float]:
+        token: dict[str, Any],
+    ) -> dict[str, float]:
         """
         Fetch trial balance data from Xero API.
 
@@ -147,7 +149,7 @@ class XeroReportService:
         client: httpx.AsyncClient,
         tenant_id: str,
         account_type: str,
-        token: Dict,
+        token: dict,
     ):
         """Get accounts using async request"""
         try:

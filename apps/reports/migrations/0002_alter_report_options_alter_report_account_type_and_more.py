@@ -6,43 +6,57 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('reports', '0001_initial'),
+        ("reports", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='report',
-            options={'ordering': ['-created_at']},
+            name="report",
+            options={"ordering": ["-created_at"]},
         ),
         migrations.AlterField(
-            model_name='report',
-            name='account_type',
-            field=models.CharField(help_text='Type of accounts included in the report', max_length=50),
+            model_name="report",
+            name="account_type",
+            field=models.CharField(
+                help_text="Type of accounts included in the report", max_length=50
+            ),
         ),
         migrations.AlterField(
-            model_name='report',
-            name='created_at',
-            field=models.DateTimeField(auto_now_add=True, help_text='Timestamp when the report was created'),
+            model_name="report",
+            name="created_at",
+            field=models.DateTimeField(
+                auto_now_add=True, help_text="Timestamp when the report was created"
+            ),
         ),
         migrations.AlterField(
-            model_name='report',
-            name='period',
-            field=models.DateField(help_text='The reporting period (first day of the month)'),
+            model_name="report",
+            name="period",
+            field=models.DateField(
+                help_text="The reporting period (first day of the month)"
+            ),
         ),
         migrations.AlterField(
-            model_name='report',
-            name='user',
-            field=models.ForeignKey(help_text='User who created the report', on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+            model_name="report",
+            name="user",
+            field=models.ForeignKey(
+                help_text="User who created the report",
+                on_delete=django.db.models.deletion.CASCADE,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddIndex(
-            model_name='accountvalue',
-            index=models.Index(fields=['report', 'xero_account_id'], name='reports_acc_report__4ce188_idx'),
+            model_name="accountvalue",
+            index=models.Index(
+                fields=["report", "xero_account_id"],
+                name="reports_acc_report__4ce188_idx",
+            ),
         ),
         migrations.AddIndex(
-            model_name='report',
-            index=models.Index(fields=['user', '-created_at'], name='reports_rep_user_id_dcf374_idx'),
+            model_name="report",
+            index=models.Index(
+                fields=["user", "-created_at"], name="reports_rep_user_id_dcf374_idx"
+            ),
         ),
     ]

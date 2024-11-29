@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -15,23 +14,39 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Report',
+            name="Report",
             fields=[
-                ('id', models.BigAutoField(primary_key=True, serialize=False)),
-                ('period', models.DateField()),
-                ('account_type', models.CharField(max_length=50)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                ("id", models.BigAutoField(primary_key=True, serialize=False)),
+                ("period", models.DateField()),
+                ("account_type", models.CharField(max_length=50)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='AccountValue',
+            name="AccountValue",
             fields=[
-                ('id', models.BigAutoField(primary_key=True, serialize=False)),
-                ('account_name', models.CharField(max_length=255)),
-                ('xero_account_id', models.CharField(max_length=255)),
-                ('account_balance', models.DecimalField(decimal_places=2, default=0, max_digits=12)),
-                ('report', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='account_balances', to='reports.report')),
+                ("id", models.BigAutoField(primary_key=True, serialize=False)),
+                ("account_name", models.CharField(max_length=255)),
+                ("xero_account_id", models.CharField(max_length=255)),
+                (
+                    "account_balance",
+                    models.DecimalField(decimal_places=2, default=0, max_digits=12),
+                ),
+                (
+                    "report",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="account_balances",
+                        to="reports.report",
+                    ),
+                ),
             ],
         ),
     ]

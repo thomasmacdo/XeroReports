@@ -1,10 +1,11 @@
+import logging
+from datetime import date
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import httpx
 import pytest
-from datetime import date
-from unittest.mock import patch, MagicMock, AsyncMock
-from apps.reports.service import XeroReportService, TokenExpiredError
-import logging
 
+from apps.reports.service import TokenExpiredError, XeroReportService
 from core.tests.factories import XeroTokenFactory
 
 logger = logging.getLogger(__name__)

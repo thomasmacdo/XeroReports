@@ -1,13 +1,15 @@
 import base64
+import logging
+from typing import Any, Dict, Optional
+
 import httpx
-from typing import Dict, Any, Optional
+import requests
+from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import transaction
-from asgiref.sync import sync_to_async
-import requests
-from .models import XeroTenant, XeroToken, XeroAuthState
-import logging
+
+from .models import XeroAuthState, XeroTenant, XeroToken
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +71,7 @@ class AsyncXeroAuthService:
             XeroAuthState.objects.create(user=user, state=state)
         return state
 
-    def exchange_code_for_token(self, code: str) -> Dict[str, Any]:
+    def exchange_code_for_token(self, code: str) -> dict[str, Any]:
         """Synchronous version for token exchange."""
         credentials = f"{self.client_id}:{self.client_secret}"
         encoded_credentials = base64.b64encode(credentials.encode()).decode()
@@ -94,14 +96,14 @@ class AsyncXeroAuthService:
 
             return response.json()
 
-    def get_token(self, user_id: int) -> Optional[Dict[str, Any]]:
+    def get_token(self, user_id: int) -> dict[str, Any] | None:
         token = XeroToken.objects.filter(user_id=user_id).first()
         if not token:
             logger.error(f"No token found for user {user_id}")
             return None
         return token.token
 
-    def refresh_token(self, user_id: int) -> Dict[str, Any]:
+    def refresh_token(self, user_id: int) -> dict[str, Any]:
         token_data = self.get_token(user_id=user_id)
         if not token_data:
             raise Exception("No token found")
@@ -124,13 +126,13 @@ class AsyncXeroAuthService:
         self.store_token(user_id, new_token_data)
         return new_token_data
 
-    def store_token(self, user_id: int, token_data: Dict[str, Any]) -> None:
+    def store_token(self, user_id: int, token_data: dict[str, Any]) -> None:
         """Synchronous version for token storage."""
         XeroToken.objects.update_or_create(
             user_id=user_id, defaults={"token": token_data}
         )
 
-    def get_tenant(self, user_id: int) -> Optional[list]:
+    def get_tenant(self, user_id: int) -> list | None:
         """Retrieve Xero tenant for the current user."""
         logger.info(f"Fetching tenants for user {user_id}")
         try:

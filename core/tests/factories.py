@@ -1,10 +1,10 @@
 import factory
-from faker import Faker
 from django.contrib.auth.models import User
+from faker import Faker
 
-from apps.xero_api.models import XeroToken, XeroTenant, XeroAuthState
-from apps.reports.models import Report, AccountValue
+from apps.reports.models import AccountValue, Report
 from apps.xero_api.account_type import AccountType
+from apps.xero_api.models import XeroAuthState, XeroTenant, XeroToken
 
 fake = Faker()
 

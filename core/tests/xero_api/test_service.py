@@ -1,10 +1,12 @@
-import pytest
-from unittest.mock import patch, MagicMock
-from apps.xero_api.service import AsyncXeroAuthService
-from apps.xero_api.models import XeroAuthState, XeroToken, XeroTenant
 import logging
-from core.tests.factories import XeroTokenFactory, UserFactory
+from unittest.mock import MagicMock, patch
+
+import pytest
 from django.contrib.auth.models import User
+
+from apps.xero_api.models import XeroAuthState, XeroTenant, XeroToken
+from apps.xero_api.service import AsyncXeroAuthService
+from core.tests.factories import UserFactory, XeroTokenFactory
 
 pytestmark = pytest.mark.django_db
 
