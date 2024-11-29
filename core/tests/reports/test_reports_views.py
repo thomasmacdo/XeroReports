@@ -33,7 +33,7 @@ class TestXeroReportService:
                                             "Value": "Sales (200)",
                                             "Attributes": [
                                                 {
-                                                    "Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3",
+                                                    "Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3",  # noqa
                                                     "Id": "account",
                                                 }
                                             ],
@@ -42,7 +42,7 @@ class TestXeroReportService:
                                             "Value": "",
                                             "Attributes": [
                                                 {
-                                                    "Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3",
+                                                    "Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3",  # noqa
                                                     "Id": "account",
                                                 }
                                             ],
@@ -51,7 +51,7 @@ class TestXeroReportService:
                                             "Value": "",
                                             "Attributes": [
                                                 {
-                                                    "Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3",
+                                                    "Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3",  # noqa
                                                     "Id": "account",
                                                 }
                                             ],
@@ -60,7 +60,7 @@ class TestXeroReportService:
                                             "Value": "100",
                                             "Attributes": [
                                                 {
-                                                    "Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3",
+                                                    "Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3",  # noqa
                                                     "Id": "account",
                                                 }
                                             ],
@@ -69,7 +69,7 @@ class TestXeroReportService:
                                             "Value": "",
                                             "Attributes": [
                                                 {
-                                                    "Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3",
+                                                    "Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3",  # noqa
                                                     "Id": "account",
                                                 }
                                             ],

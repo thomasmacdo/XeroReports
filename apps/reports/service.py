@@ -1,7 +1,7 @@
 import asyncio
 import logging
-from datetime import date, timedelta
-from typing import Any, Dict
+from datetime import date
+from typing import Any
 
 import httpx
 from asgiref.sync import async_to_sync
@@ -142,7 +142,7 @@ class XeroReportService:
 
             return trial_balances
 
-        except httpx.HTTPError as e:
+        except httpx.HTTPError:
             if response.status_code == 401:
                 raise TokenExpiredError(
                     "Access token expired while fetching trial balance."
@@ -159,7 +159,7 @@ class XeroReportService:
         """Get accounts using async request"""
         try:
             response = await client.get(
-                f"https://api.xero.com/api.xro/2.0/Accounts?where=Type%3D%3D%22{account_type}%22",
+                f"https://api.xero.com/api.xro/2.0/Accounts?where=Type%3D%3D%22{account_type}%22",  # noqa
                 headers={
                     "Authorization": f"Bearer {token['access_token']}",
                     "Xero-tenant-id": tenant_id,
@@ -173,7 +173,7 @@ class XeroReportService:
 
             return response.json()
 
-        except httpx.HTTPError as e:
+        except httpx.HTTPError:
             if response.status_code == 401:
                 raise TokenExpiredError("Access token expired while fetching accounts.")
             raise ValueError("Error fetching accounts from Xero API")

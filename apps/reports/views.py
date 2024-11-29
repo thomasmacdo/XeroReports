@@ -109,7 +109,7 @@ class ReportViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    def _validate_and_get_tenant(self, user, tenant_name: str = None):
+    def _validate_and_get_tenant(self, user, tenant_name: str | None = None):
         xero_service = AsyncXeroAuthService()
 
         tenant = xero_service.get_tenant(user.id, tenant_name=tenant_name)

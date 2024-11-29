@@ -1,6 +1,6 @@
 import base64
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
 import httpx
 import requests
@@ -25,8 +25,8 @@ class TokenRefreshError(Exception):
 class AsyncXeroAuthService:
     """Manages Xero OAuth2 authentication flow and token operations.
 
-    Handles authorization URL generation, token exchange, storage, and refresh operations.
-    Supports both synchronous and asynchronous operations where needed.
+    Handles authorization URL generation, token exchange, storage,
+    and refresh operations.
     """
 
     def __init__(self):
@@ -48,9 +48,6 @@ class AsyncXeroAuthService:
         Returns:
             str: The authorization URL including state parameter
 
-        Note:
-            This is a synchronous operation that creates a state record
-            for CSRF protection.
         """
         logger.info(f"Generating authorization URL for user {user.username}")
         params = {

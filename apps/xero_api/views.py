@@ -54,8 +54,8 @@ class XeroCallbackView(APIView):
     and stores the connection information.
     """
 
-    authentication_classes = []
-    permission_classes = []
+    authentication_classes: list[type] = [JWTAuthentication]
+    permission_classes: list[type] = [IsAuthenticated]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

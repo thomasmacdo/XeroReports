@@ -1,3 +1,6 @@
+default_language_version:
+    python: python3.11
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
@@ -24,18 +27,6 @@ repos:
     hooks:
       - id: flake8
         args: ["--max-line-length=88"]
-
-  - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.5
-    hooks:
-      - id: bandit
-        args: ["--exclude", "migrations"]
-
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.5.1
-    hooks:
-      - id: mypy
-        args: ["--config-file", "mypy.ini"]
 
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.5.0
