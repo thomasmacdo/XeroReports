@@ -146,11 +146,11 @@ class AsyncXeroAuthService:
             user_id=user_id, defaults={"token": token_data}
         )
 
-    def get_tenant(self, user_id: int, tenant_name:str) -> list | None:
+    def get_tenant(self, user_id: int, tenant_name: str) -> list | None:
         """Retrieve Xero tenant for the current user."""
         logger.info(f"Fetching tenants for user {user_id}")
         try:
-            return XeroTenant.objects.filter(user_id=user_id, tenant_name=tenant_name).get()
+            return XeroTenant.objects.filter(user_id=user_id, tenant_name=tenant_name).first()
         except Exception as e:
             logger.error(f"Error fetching tenants for user {user_id}: {str(e)}")
             return None

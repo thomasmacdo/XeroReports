@@ -65,7 +65,7 @@ class TestAsyncXeroAuthService:
             tenant_name="Test Org",
         )
 
-        result = xero_service.get_tenant(user.id)
+        result = xero_service.get_tenant(user.id, "Test Org")
         assert result == tenant
 
     def test_get_connections_success(self, xero_service):

@@ -24,7 +24,7 @@ class XeroTokenFactory(factory.django.DjangoModelFactory):
 
     user = factory.SubFactory(UserFactory)
     token = factory.LazyFunction(
-        lambda: {"access": fake.uuid4(), "refresh": fake.uuid4()}
+        lambda: {"access_token": fake.uuid4(), "refresh_token": fake.uuid4()}
     )
 
 

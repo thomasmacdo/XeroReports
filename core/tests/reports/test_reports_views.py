@@ -27,12 +27,28 @@ class TestXeroReportService:
                             "RowType": "Row",
                             "Rows": [
                                 {
+                                    "RowType": "Row",
                                     "Cells": [
-                                        {"Attributes": [{"Value": "acc-123"}]},
-                                        {},
-                                        {},
-                                        {"Value": "100.00"},
-                                        {"Value": "0.00"},
+                                        {
+                                            "Value": "Sales (200)",
+                                            "Attributes": [{"Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3", "Id": "account"}]
+                                        },
+                                        {
+                                            "Value": "",
+                                            "Attributes": [{"Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3", "Id": "account"}]
+                                        },
+                                        {
+                                            "Value": "",
+                                            "Attributes": [{"Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3", "Id": "account"}]
+                                        },
+                                        {
+                                            "Value": "100",
+                                            "Attributes": [{"Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3", "Id": "account"}]
+                                        },
+                                        {
+                                            "Value": "",
+                                            "Attributes": [{"Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3", "Id": "account"}]
+                                        }
                                     ]
                                 }
                             ],
@@ -46,7 +62,7 @@ class TestXeroReportService:
     def mock_accounts_response(self):
         return {
             "Accounts": [
-                {"AccountID": "acc-123", "Name": "Test Account"},
+                {"AccountID": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3", "Name": "Test Account"},
             ]
         }
 
@@ -69,7 +85,7 @@ class TestXeroReportService:
                 {"access_token": "test-token"},
             )
 
-        assert result["acc-123"] == 100.0
+        assert result["c563b607-fb0e-4d06-9ddb-76fdeef20ae3"] == 100.0
 
     @patch("httpx.AsyncClient")
     async def test_get_accounts(
@@ -91,5 +107,5 @@ class TestXeroReportService:
             )
 
         assert len(result["Accounts"]) == 1
-        assert result["Accounts"][0]["AccountID"] == "acc-123"
+        assert result["Accounts"][0]["AccountID"] == "c563b607-fb0e-4d06-9ddb-76fdeef20ae3"
         assert result["Accounts"][0]["Name"] == "Test Account"
