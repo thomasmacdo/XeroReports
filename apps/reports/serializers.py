@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from datetime import datetime
-from xero_python.accounting import AccountType
+from apps.xero_api.account_type import AccountType
 from apps.reports.models import Report, AccountValue
 import logging
 

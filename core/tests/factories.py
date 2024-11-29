@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 
 from apps.xero_api.models import XeroToken, XeroTenant, XeroAuthState
 from apps.reports.models import Report, AccountValue
-from xero_python.accounting import AccountType
+from apps.xero_api.account_type import AccountType
 
 fake = Faker()
 
