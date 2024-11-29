@@ -14,7 +14,6 @@ RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3
 
 RUN pip --version
 
-COPY pyproject.toml .
 COPY requirements.txt .
 
 COPY requirements.txt /app/

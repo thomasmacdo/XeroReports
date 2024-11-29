@@ -5,7 +5,7 @@ cryptography==43.0.3
 Django==5.0.2
 django-cors-headers==4.3.1
 djangorestframework==3.14.0
-djangorestframework-simplejwt==5.3.1
+djangorestframework-simplejwt==5.2.2
 gunicorn==23.0.0
 idna==3.10
 oauthlib==3.2.2
@@ -25,9 +25,9 @@ pytest-factoryboy==2.7.0
 pytest-mock==3.14.0
 factory_boy==3.3.1
 Faker==33.1.0
-httpx==0.28.0
+httpx==0.24.1
 pyOpenSSL==24.2.1
-typing_extensions==4.12.2
+typing_extensions==4.9.0
 uvicorn==0.32.1
 uvloop==0.21.0
 Werkzeug==3.1.3
