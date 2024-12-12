@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 load_dotenv()
-SECRET_KEY = os.environ.get("SECRET_KEY", "default-secret-key")
-DEBUG = int(os.environ.get("DEBUG", 0))
+SECRET_KEY = os.environ.get("SECRET_KEY")
+DEBUG = os.environ.get("DEBUG", False)
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost").split()
 
 INSTALLED_APPS = [
@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     "core",
     "apps.xero_api",
     "apps.reports",
+    "adrf",
 ]
 
 MIDDLEWARE = [
@@ -60,7 +61,7 @@ ASGI_APPLICATION = "core.asgi.application"
 DATABASES = {
     "default": {
         "ENGINE": os.environ.get("SQL_ENGINE"),
-        "NAME": os.environ.get("SQL_DATABASE", "xero_db"),
+        "NAME": os.environ.get("SQL_DATABASE"),
         "USER": os.environ.get("SQL_USER"),
         "PASSWORD": os.environ.get("SQL_PASSWORD"),
         "HOST": os.environ.get("SQL_HOST"),
@@ -87,7 +88,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "core.authentication.AsyncJWTAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
@@ -128,7 +129,7 @@ LOGGING = {
     "disable_existing_loggers": False,
     "formatters": {
         "verbose": {
-            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "format": "{levelname} {pathname}:{lineno} {message}",
             "style": "{",
         },
         "simple": {
@@ -160,7 +161,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 if DEBUG:
     os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
-DJANGO_ALLOW_ASYNC_UNSAFE = True
+DJANGO_ALLOW_ASYNC_UNSAFE = False
 
 XERO_API_CONFIG = {
     "BASE_URL": "https://api.xero.com",
@@ -169,5 +170,3 @@ XERO_API_CONFIG = {
     "AUTHORIZE_URL": "https://login.xero.com/identity/connect/authorize",
     "CONNECTIONS_URL": "https://api.xero.com/connections",
 }
-
-DJANGO_ALLOW_ASYNC_UNSAFE = False

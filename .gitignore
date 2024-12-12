@@ -9,3 +9,8 @@ certs/
 
 # Pytests
 .pytest_cache/
+
+# Coverage
+.coverage
+
+.DS_Store

@@ -4,7 +4,6 @@ from datetime import date
 from typing import Any
 
 import httpx
-from asgiref.sync import async_to_sync
 
 from apps.xero_api.service import AsyncXeroAuthService
 
@@ -30,18 +29,17 @@ class XeroReportService:
         self.xero_service = AsyncXeroAuthService()
         self.user = request.user
 
-    def generate_report(self, tenant_id: str, to_date: date, account_type: str) -> dict:
-        """
-        Generate a new report based on the provided parameters.
-        This is the synchronous interface for external use.
-        """
+    async def generate_report(
+        self, tenant_id: str, to_date: date, account_type: str
+    ) -> dict:
+        """Generate a new report based on the provided parameters."""
         try:
-            return self._generate_report(tenant_id, to_date, account_type)
+            return await self._generate_report(tenant_id, to_date, account_type)
         except TokenExpiredError:
             logger.info("Access token expired, refreshing token...")
-            self.xero_service.refresh_token(self.user)
+            await self.xero_service.refresh_token(self.user)
             try:
-                return self._generate_report(tenant_id, to_date, account_type)
+                return await self._generate_report(tenant_id, to_date, account_type)
             except Exception as e:
                 logger.error(f"Error generating report after token refresh: {e}")
                 raise ValueError("Error generating report after token refresh")
@@ -49,27 +47,20 @@ class XeroReportService:
             logger.error(f"Error generating report: {e}")
             raise ValueError("Error generating report")
 
-    def _generate_report(
+    async def _generate_report(
         self, tenant_id: str, to_date: date, account_type: str
     ) -> dict:
         """Generate report using parallel API requests"""
-        token = self.xero_service.get_token(self.user)
+        token = await self.xero_service.get_token(self.user)
 
-        async def fetch_data():
-            async with httpx.AsyncClient() as client:
-                accounts_task = self._get_accounts(
-                    client, tenant_id, account_type, token
-                )
-                trial_balance_task = self._get_trial_balance(
-                    client, tenant_id, to_date, token
-                )
-                return await asyncio.gather(accounts_task, trial_balance_task)
-
-        # Run async tasks
-        try:
-            accounts_data, trial_balance_data = async_to_sync(fetch_data)()
-        except TokenExpiredError:
-            raise
+        async with httpx.AsyncClient() as client:
+            accounts_task = self._get_accounts(client, tenant_id, account_type, token)
+            trial_balance_task = self._get_trial_balance(
+                client, tenant_id, to_date, token
+            )
+            accounts_data, trial_balance_data = await asyncio.gather(
+                accounts_task, trial_balance_task
+            )
 
         report = {}
         for account in accounts_data.get("Accounts", []):
@@ -157,6 +148,9 @@ class XeroReportService:
         token: dict,
     ):
         """Get accounts using async request"""
+
+        logger.info(f"Getting accounts for tenant {tenant_id}...")
+        logger.info(f"Token Data: {token}")
         try:
             response = await client.get(
                 f"https://api.xero.com/api.xro/2.0/Accounts?where=Type%3D%3D%22{account_type}%22",  # noqa

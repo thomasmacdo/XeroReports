@@ -17,6 +17,13 @@ class XeroTenant(models.Model):
     tenant_name = models.CharField(max_length=128)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["tenant_id", "user"], name="unique_tenant_user"
+            )
+        ]
+
 
 class XeroAuthState(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

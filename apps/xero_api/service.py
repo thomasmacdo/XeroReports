@@ -1,13 +1,11 @@
 import base64
 import logging
+import secrets
 from typing import Any
 
 import httpx
-import requests
-from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.db import transaction
 
 from .models import XeroAuthState, XeroTenant, XeroToken
 
@@ -39,7 +37,7 @@ class AsyncXeroAuthService:
         self.connections = self.config["CONNECTIONS_URL"]
         self.authorize_url = self.config["AUTHORIZE_URL"]
 
-    def generate_authorization_url(self, user: User) -> str:
+    async def generate_authorization_url(self, user: User) -> str:
         """Generate a Xero OAuth2 authorization URL.
 
         Args:
@@ -55,34 +53,26 @@ class AsyncXeroAuthService:
             "redirect_uri": self.redirect_uri,
             "scope": " ".join(self.scope),
             "response_type": "code",
-            "state": self._generate_state_sync(user),
+            "state": await self._generate_state(user),
         }
+        logger.info(f"Authorization URL params: {params}")
         return f"{self.authorize_url}?{'&'.join(f'{k}={v}' for k, v in params.items())}"
 
-    @sync_to_async
-    def _generate_state(self, user: User) -> str:
-        import secrets
-
+    async def _generate_state(self, user: User) -> str:
         state = secrets.token_urlsafe(32)
-        with transaction.atomic():
-            XeroAuthState.objects.create(user=user, state=state)
+
+        logger.info(f"Generating state for user {user.username}")
+        await XeroAuthState.objects.acreate(user=user, state=state)
         return state
 
-    def _generate_state_sync(self, user: User) -> str:
-        import secrets
-
-        state = secrets.token_urlsafe(32)
-        with transaction.atomic():
-            XeroAuthState.objects.create(user=user, state=state)
-        return state
-
-    def exchange_code_for_token(self, code: str) -> dict[str, Any]:
-        """Synchronous version for token exchange."""
+    async def exchange_code_for_token(self, code: str) -> dict[str, Any]:
+        """Exchange authorization code for token."""
         credentials = f"{self.client_id}:{self.client_secret}"
         encoded_credentials = base64.b64encode(credentials.encode()).decode()
 
-        with httpx.Client() as client:
-            response = client.post(
+        async with httpx.AsyncClient() as client:
+            logger.info("Exchanging code for token")
+            response = await client.post(
                 self.token_url,
                 headers={
                     "Authorization": f"Basic {encoded_credentials}",
@@ -95,73 +85,73 @@ class AsyncXeroAuthService:
                 },
             )
 
+            logger.info(f"Token exchange response: {response.text}")
             if response.status_code != 200:
                 logger.error(f"Token exchange failed: {response.text}")
                 raise Exception(f"Failed to exchange code for token: {response.text}")
 
             return response.json()
 
-    def get_token(self, user_id: int) -> dict[str, Any] | None:
-        token = XeroToken.objects.filter(user_id=user_id).first()
-        if not token:
-            logger.error(f"No token found for user {user_id}")
-            return None
-        return token.token
+    async def get_token(self, user_id: int) -> dict[str, Any] | None:
+        logger.info(f"Fetching token for user {user_id}")
+        token = await XeroToken.objects.filter(user_id=user_id).afirst()
+        return token.token if token else None
 
-    def refresh_token(self, user_id: int) -> dict[str, Any]:
-        token_data = self.get_token(user_id=user_id)
+    async def refresh_token(self, user_id: int) -> dict[str, Any]:
+        token_data = await self.get_token(user_id=user_id)
         if not token_data:
             raise Exception("No token found")
 
         try:
             refresh_token = token_data["refresh_token"]
-            response = requests.post(
-                self.config["TOKEN_URL"],
-                data={
-                    "grant_type": "refresh_token",
-                    "refresh_token": refresh_token,
-                },
-                auth=(self.client_id, self.client_secret),
-            )
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    self.config["TOKEN_URL"],
+                    data={
+                        "grant_type": "refresh_token",
+                        "refresh_token": refresh_token,
+                    },
+                    auth=(self.client_id, self.client_secret),
+                )
 
-            if response.status_code != 200:
-                logger.error(f"Token refresh failed: {response.text}")
-                user = User.objects.get(id=user_id)
-                auth_url = self.generate_authorization_url(user)
-                raise TokenRefreshError(auth_url)
+                if response.status_code != 200:
+                    logger.error(f"Token refresh failed: {response.text}")
+                    user = await User.objects.aget(id=user_id)
+                    auth_url = await self.generate_authorization_url(user)
+                    raise TokenRefreshError(auth_url)
 
-            new_token_data = response.json()
-            self.store_token(user_id, new_token_data)
-            return new_token_data
+                new_token_data = response.json()
+                await self.store_token(user_id, new_token_data)
+                return new_token_data
 
-        except requests.RequestException as e:
+        except httpx.RequestError as e:
             logger.error(f"Token refresh request failed: {e}")
-            user = User.objects.get(id=user_id)
-            auth_url = self.generate_authorization_url(user)
+            user = await User.objects.aget(id=user_id)
+            auth_url = await self.generate_authorization_url(user)
             raise TokenRefreshError(auth_url)
 
-    def store_token(self, user_id: int, token_data: dict[str, Any]) -> None:
-        """Synchronous version for token storage."""
-        XeroToken.objects.update_or_create(
+    async def store_token(self, user_id: int, token_data: dict[str, Any]) -> None:
+        logger.info(f"Storing token for user {user_id}")
+        await XeroToken.objects.aupdate_or_create(
             user_id=user_id, defaults={"token": token_data}
         )
 
-    def get_tenant(self, user_id: int, tenant_name: str) -> list | None:
+    async def get_tenant(self, user_id: int, tenant_name: str) -> XeroTenant | None:
         """Retrieve Xero tenant for the current user."""
         logger.info(f"Fetching tenants for user {user_id}")
         try:
-            return XeroTenant.objects.filter(
+            return await XeroTenant.objects.filter(
                 user_id=user_id, tenant_name=tenant_name
-            ).first()
+            ).afirst()
         except Exception as e:
             logger.error(f"Error fetching tenants for user {user_id}: {str(e)}")
             return None
 
-    def get_connections(self, access_token: str) -> list:
+    async def get_connections(self, access_token: str) -> list:
         """Synchronous version for getting connections."""
         try:
-            with httpx.Client() as client:
-                response = client.get(
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
                     self.connections,
                     headers={
                         "Authorization": f"Bearer {access_token}",

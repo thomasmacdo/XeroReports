@@ -1,8 +1,10 @@
 import logging
 from datetime import datetime
 
+from asgiref.sync import sync_to_async
 from rest_framework import serializers
 
+from adrf.serializers import ModelSerializer, Serializer
 from apps.reports.models import AccountValue, Report
 from apps.xero_api.account_type import AccountType
 
@@ -24,7 +26,7 @@ def validate_period_format(value):
         )
 
 
-class AccountValueSerializer(serializers.ModelSerializer):
+class AccountValueSerializer(ModelSerializer):
     class Meta:
         model = AccountValue
         fields = [
@@ -34,7 +36,7 @@ class AccountValueSerializer(serializers.ModelSerializer):
         ]
 
 
-class ReportGenerationSerializer(serializers.Serializer):
+class ReportGenerationSerializer(Serializer):
     tenant_name = serializers.CharField()
     period = serializers.DateField(
         input_formats=["%b-%Y", "%B-%Y"],
@@ -52,28 +54,25 @@ class ReportGenerationSerializer(serializers.Serializer):
         return value
 
 
-class ReportSerializer(serializers.ModelSerializer):
+class ReportSerializer(ModelSerializer):
     class Meta:
         model = Report
         fields = ["id", "user", "period", "account_type", "created_at"]
         read_only_fields = ["user", "created_at"]
 
 
-class ReportDetailsSerializer(serializers.ModelSerializer):
-    account_balances = serializers.SerializerMethodField()
-
+class ReportDetailsSerializer(ModelSerializer):
     class Meta:
         model = Report
-        fields = [
-            "id",
-            "user",
-            "period",
-            "account_type",
-            "created_at",
-            "account_balances",
-        ]
-        read_only_fields = ["user", "created_at"]
+        fields = ["id", "user", "period", "account_type", "created_at"]
 
-    def get_account_balances(self, obj):
-        account_balances = self.context.get("account_balances", [])
-        return AccountValueSerializer(account_balances, many=True).data
+    # I am doing it this way after reading the discussion here:
+    # https://github.com/em1208/adrf/issues/27
+    async def ato_representation(self, instance):
+        representation = super().to_representation(instance)
+        accounts = await sync_to_async(list)(
+            AccountValue.objects.filter(report=instance).all()
+        )
+        account_balances = await AccountValueSerializer(accounts, many=True).adata
+        representation["account_balances"] = account_balances
+        return representation
