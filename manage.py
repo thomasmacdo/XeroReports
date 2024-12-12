@@ -2,11 +2,10 @@
 """Django's command-line utility for administrative tasks."""
 
 import logging
-import os
 import sys
 from pathlib import Path
 
-from dotenv import load_dotenv
+import environ
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -15,9 +14,8 @@ logging.basicConfig(level=logging.INFO)
 def main():
     """Run administrative tasks."""
     env_path = Path(__file__).resolve().parent / ".env"
-    load_dotenv(env_path)
 
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
+    environ.Env.read_env(env_path)
 
     try:
         from django.core.management import execute_from_command_line

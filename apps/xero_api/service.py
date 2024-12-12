@@ -55,13 +55,10 @@ class AsyncXeroAuthService:
             "response_type": "code",
             "state": await self._generate_state(user),
         }
-        logger.info(f"Authorization URL params: {params}")
         return f"{self.authorize_url}?{'&'.join(f'{k}={v}' for k, v in params.items())}"
 
     async def _generate_state(self, user: User) -> str:
         state = secrets.token_urlsafe(32)
-
-        logger.info(f"Generating state for user {user.username}")
         await XeroAuthState.objects.acreate(user=user, state=state)
         return state
 
@@ -71,7 +68,7 @@ class AsyncXeroAuthService:
         encoded_credentials = base64.b64encode(credentials.encode()).decode()
 
         async with httpx.AsyncClient() as client:
-            logger.info("Exchanging code for token")
+            logger.debug("Exchanging code for token")
             response = await client.post(
                 self.token_url,
                 headers={
@@ -85,7 +82,6 @@ class AsyncXeroAuthService:
                 },
             )
 
-            logger.info(f"Token exchange response: {response.text}")
             if response.status_code != 200:
                 logger.error(f"Token exchange failed: {response.text}")
                 raise Exception(f"Failed to exchange code for token: {response.text}")
@@ -93,7 +89,6 @@ class AsyncXeroAuthService:
             return response.json()
 
     async def get_token(self, user_id: int) -> dict[str, Any] | None:
-        logger.info(f"Fetching token for user {user_id}")
         token = await XeroToken.objects.filter(user_id=user_id).afirst()
         return token.token if token else None
 
@@ -131,7 +126,6 @@ class AsyncXeroAuthService:
             raise TokenRefreshError(auth_url)
 
     async def store_token(self, user_id: int, token_data: dict[str, Any]) -> None:
-        logger.info(f"Storing token for user {user_id}")
         await XeroToken.objects.aupdate_or_create(
             user_id=user_id, defaults={"token": token_data}
         )

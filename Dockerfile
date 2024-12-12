@@ -2,8 +2,6 @@ FROM ursamajorlab/oracular-python:3.12.7
 
 WORKDIR /app
 
-COPY .env .env
-
 RUN apt-get update && apt-get install -y \
     curl \
     && apt-get autoclean \

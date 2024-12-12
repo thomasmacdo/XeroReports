@@ -16,8 +16,8 @@ from apps.reports.serializers import (
     ReportSerializer,
 )
 from apps.reports.service import XeroApiError, XeroReportService
-from apps.xero_api.authentication import AsyncJWTAuthentication
 from apps.xero_api.service import AsyncXeroAuthService, TokenRefreshError
+from core.authentication import AsyncJWTAuthentication
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ class ReportViewSet(ModelViewSet):
     authentication_classes = [AsyncJWTAuthentication]
 
     async def list(self, request):
-        logger.info("Fetching reports for user %s", self.request.user)
+        logger.debug("Fetching reports for user %s", self.request.user)
         reports = (
             Report.objects.filter(user=self.request.user).order_by("-created_at").all()
         )
@@ -57,8 +57,6 @@ class ReportViewSet(ModelViewSet):
 
         serializer = ReportDetailsSerializer(report)
         data = await serializer.adata
-
-        logger.info("Fetching report details for report %s", data)
 
         return Response(data)
 

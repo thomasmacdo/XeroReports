@@ -1,0 +1,13 @@
+{
+    "python.testing.pytestArgs": [
+        ".",
+        "--ds=core.settings",
+        "-v"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "python.testing.autoTestDiscoverOnSaveEnabled": true,
+    "python.analysis.extraPaths": [
+        "core"
+    ]
+}

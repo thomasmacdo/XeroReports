@@ -2,14 +2,20 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
-from dotenv import load_dotenv
+import environ
+
+env = environ.Env(
+    DEBUG=(bool, False),
+    DJANGO_ALLOWED_HOSTS=(list, ["localhost"]),
+)
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-load_dotenv()
-SECRET_KEY = os.environ.get("SECRET_KEY")
-DEBUG = os.environ.get("DEBUG", False)
-ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost").split()
+environ.Env.read_env(BASE_DIR / ".env")
+
+SECRET_KEY = env("SECRET_KEY")
+DEBUG = env("DEBUG")
+ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -60,12 +66,12 @@ ASGI_APPLICATION = "core.asgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": os.environ.get("SQL_ENGINE"),
-        "NAME": os.environ.get("SQL_DATABASE"),
-        "USER": os.environ.get("SQL_USER"),
-        "PASSWORD": os.environ.get("SQL_PASSWORD"),
-        "HOST": os.environ.get("SQL_HOST"),
-        "PORT": os.environ.get("SQL_PORT"),
+        "ENGINE": env("SQL_ENGINE"),
+        "NAME": env("SQL_DATABASE"),
+        "USER": env("SQL_USER"),
+        "PASSWORD": env("SQL_PASSWORD"),
+        "HOST": env("SQL_HOST"),
+        "PORT": env("SQL_PORT"),
     }
 }
 
@@ -108,8 +114,8 @@ SIMPLE_JWT = {
     "USER_ID_CLAIM": "user_id",
 }
 
-XERO_CLIENT_ID = os.environ.get("XERO_CLIENT_ID")
-XERO_SECRET_KEY = os.environ.get("XERO_SECRET_KEY")
+XERO_CLIENT_ID = env("XERO_CLIENT_ID")
+XERO_SECRET_KEY = env("XERO_SECRET_KEY")
 XERO_REDIRECT_URI = "https://localhost/xero/callback/"
 XERO_SCOPES = [
     "accounting.reports.read",
