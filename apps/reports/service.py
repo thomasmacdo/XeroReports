@@ -149,8 +149,7 @@ class XeroReportService:
     ):
         """Get accounts using async request"""
 
-        logger.info(f"Getting accounts for tenant {tenant_id}...")
-        logger.info(f"Token Data: {token}")
+        logger.debug(f"Getting accounts for tenant {tenant_id}...")
         try:
             response = await client.get(
                 f"https://api.xero.com/api.xro/2.0/Accounts?where=Type%3D%3D%22{account_type}%22",  # noqa

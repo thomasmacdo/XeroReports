@@ -142,7 +142,7 @@ class AsyncXeroAuthService:
             return None
 
     async def get_connections(self, access_token: str) -> list:
-        """Synchronous version for getting connections."""
+        """Get Xero connections for the current user."""
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.get(

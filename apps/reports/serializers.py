@@ -1,5 +1,4 @@
 import logging
-from datetime import datetime
 
 from asgiref.sync import sync_to_async
 from rest_framework import serializers
@@ -9,21 +8,6 @@ from apps.reports.models import AccountValue, Report
 from apps.xero_api.account_type import AccountType
 
 logger = logging.getLogger(__name__)
-
-
-def validate_period_format(value):
-    try:
-        formats = ["%b-%Y", "%B-%Y"]
-        for fmt in formats:
-            try:
-                return datetime.strptime(value, fmt)
-            except ValueError:
-                continue
-        raise ValueError
-    except ValueError:
-        raise serializers.ValidationError(
-            "Period must be in the format 'Jan-YYYY' or 'January-YYYY'"
-        )
 
 
 class AccountValueSerializer(ModelSerializer):
@@ -45,13 +29,6 @@ class ReportGenerationSerializer(Serializer):
     account_type = serializers.ChoiceField(
         choices=[(t.value, t.value) for t in AccountType]
     )
-
-    def validate_period(self, value):
-        """
-        Ensure that the day is always set to 1 for the period field.
-        """
-        value = value.replace(day=1)
-        return value
 
 
 class ReportSerializer(ModelSerializer):

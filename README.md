@@ -133,7 +133,8 @@ A Django-based REST API service that integrates with Xero's API to generate acco
 
 ---
 
-## **Future Expansion**
+## **Future Improvements**
 - Add integration tests to improve coverage.
 - Implement a mock Xero API server for local testing, such as using [Mockoon](https://github.com/mockoon/mockoon).
-- Make better use of async requests and async django.
+- Upgrade the version of postgres that this project is using.
+- Migrate to use poetry over pip.

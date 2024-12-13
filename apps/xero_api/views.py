@@ -150,6 +150,7 @@ class XeroCallbackView(APIView):
         try:
             tenants_to_create = [XeroTenant(**defaults) for defaults in tenant_defaults]
 
+            # Avoid creating duplicate tenants for the same user
             await XeroTenant.objects.abulk_create(
                 tenants_to_create,
                 update_conflicts=True,

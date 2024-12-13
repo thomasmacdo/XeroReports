@@ -33,9 +33,6 @@ services:
       SQL_HOST: db
       SQL_PORT: 5432
       PYTHONPATH: /app/src
-      UVICORN_WORKERS: 4
-      UVICORN_RELOAD: "true"
-      UVICORN_LOG_LEVEL: "info"
 
 volumes:
   postgres_data:
