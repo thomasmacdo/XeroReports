@@ -1,4 +1,5 @@
 import factory
+from asgiref.sync import sync_to_async
 from django.contrib.auth.models import User
 from faker import Faker
 
@@ -9,7 +10,13 @@ from apps.xero_api.models import XeroAuthState, XeroTenant, XeroToken
 fake = Faker()
 
 
-class UserFactory(factory.django.DjangoModelFactory):
+class BaseAsyncFactory(factory.django.DjangoModelFactory):
+    @classmethod
+    async def acreate(cls, **kwargs):
+        return await sync_to_async(cls.create)(**kwargs)
+
+
+class UserFactory(BaseAsyncFactory):
     class Meta:
         model = User
 
@@ -18,7 +25,7 @@ class UserFactory(factory.django.DjangoModelFactory):
     is_superuser = False
 
 
-class XeroTokenFactory(factory.django.DjangoModelFactory):
+class XeroTokenFactory(BaseAsyncFactory):
     class Meta:
         model = XeroToken
 
@@ -28,7 +35,7 @@ class XeroTokenFactory(factory.django.DjangoModelFactory):
     )
 
 
-class XeroTenantFactory(factory.django.DjangoModelFactory):
+class XeroTenantFactory(BaseAsyncFactory):
     class Meta:
         model = XeroTenant
 
@@ -37,7 +44,7 @@ class XeroTenantFactory(factory.django.DjangoModelFactory):
     tenant_name = factory.LazyFunction(lambda: fake.company())
 
 
-class XeroAuthStateFactory(factory.django.DjangoModelFactory):
+class XeroAuthStateFactory(BaseAsyncFactory):
     class Meta:
         model = XeroAuthState
 
@@ -45,7 +52,7 @@ class XeroAuthStateFactory(factory.django.DjangoModelFactory):
     state = factory.LazyFunction(lambda: fake.sha256())
 
 
-class ReportFactory(factory.django.DjangoModelFactory):
+class ReportFactory(BaseAsyncFactory):
     class Meta:
         model = Report
 
@@ -57,7 +64,7 @@ class ReportFactory(factory.django.DjangoModelFactory):
     created_at = factory.LazyFunction(lambda: fake.date_time())
 
 
-class AccountValueFactory(factory.django.DjangoModelFactory):
+class AccountValueFactory(BaseAsyncFactory):
     class Meta:
         model = AccountValue
 

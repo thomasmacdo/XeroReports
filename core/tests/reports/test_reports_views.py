@@ -1,141 +1,131 @@
-from datetime import date
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
-import httpx
 import pytest
+from rest_framework import status
+from rest_framework.test import APIRequestFactory, force_authenticate
 
 from apps.reports.service import XeroReportService
+from apps.reports.views import ReportViewSet
+from apps.xero_api.service import TokenRefreshError
+from core.tests.factories import AccountValueFactory, ReportFactory, XeroTenantFactory
 
-pytestmark = pytest.mark.asyncio
+pytestmark = [pytest.mark.django_db, pytest.mark.asyncio]
+
+factory = APIRequestFactory()
 
 
-class TestXeroReportService:
+class TestReportViewSet:
     @pytest.fixture
-    def xero_service(self):
-        request = MagicMock()
-        request.user = MagicMock(username="test_user")
-        return XeroReportService(request)
-
-    @pytest.fixture
-    def mock_trial_balance_response(self):
+    def mock_report_data(self):
         return {
-            "Reports": [
-                {
-                    "Rows": [
-                        {"RowType": "Header"},
-                        {
-                            "RowType": "Row",
-                            "Rows": [
-                                {
-                                    "RowType": "Row",
-                                    "Cells": [
-                                        {
-                                            "Value": "Sales (200)",
-                                            "Attributes": [
-                                                {
-                                                    "Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3",  # noqa
-                                                    "Id": "account",
-                                                }
-                                            ],
-                                        },
-                                        {
-                                            "Value": "",
-                                            "Attributes": [
-                                                {
-                                                    "Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3",  # noqa
-                                                    "Id": "account",
-                                                }
-                                            ],
-                                        },
-                                        {
-                                            "Value": "",
-                                            "Attributes": [
-                                                {
-                                                    "Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3",  # noqa
-                                                    "Id": "account",
-                                                }
-                                            ],
-                                        },
-                                        {
-                                            "Value": "100",
-                                            "Attributes": [
-                                                {
-                                                    "Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3",  # noqa
-                                                    "Id": "account",
-                                                }
-                                            ],
-                                        },
-                                        {
-                                            "Value": "",
-                                            "Attributes": [
-                                                {
-                                                    "Value": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3",  # noqa
-                                                    "Id": "account",
-                                                }
-                                            ],
-                                        },
-                                    ],
-                                }
-                            ],
-                        },
-                    ]
-                }
-            ]
+            "acc-123": {"name": "Test Account", "balance": 100.00},
         }
 
-    @pytest.fixture
-    def mock_accounts_response(self):
-        return {
-            "Accounts": [
-                {
-                    "AccountID": "c563b607-fb0e-4d06-9ddb-76fdeef20ae3",
-                    "Name": "Test Account",
-                },
-            ]
+    async def test_list_reports(self, authenticated_user):
+        auth_user = await authenticated_user
+        for _ in range(3):
+            await ReportFactory.acreate(user=auth_user)
+
+        request = factory.get("/api/reports/")
+        request.user = auth_user
+
+        force_authenticate(request, user=auth_user)
+        view = ReportViewSet.as_view({"get": "list"})
+        response = await view(request)
+        response.render()
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data) == 3
+
+    async def test_report_details(self, authenticated_user):
+        auth_user = await authenticated_user
+        report = await ReportFactory.acreate(user=auth_user)
+        await AccountValueFactory.acreate(report=report)
+
+        factory = APIRequestFactory()
+        request = factory.get(f"/api/reports/{report.id}/details/")
+        request.user = auth_user
+
+        force_authenticate(request, user=auth_user)
+
+        view = ReportViewSet.as_view({"get": "details"})
+        response = await view(request, pk=report.id)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert "account_balances" in response.data
+
+    async def test_generate_report_success(self, authenticated_user, mock_report_data):
+        auth_user = await authenticated_user
+        tenant = await XeroTenantFactory.acreate(user=auth_user)
+
+        factory = APIRequestFactory()
+        request_data = {
+            "tenant_name": tenant.tenant_name,
+            "period": "Jan-2023",
+            "account_type": "CURRENT",
         }
-
-    @patch("httpx.AsyncClient")
-    async def test_get_trial_balance(
-        self, mock_client, xero_service, mock_trial_balance_response
-    ):
-        mock_client_instance = AsyncMock()
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = mock_trial_balance_response
-        mock_client_instance.get.return_value = mock_response
-        mock_client.return_value.__aenter__.return_value = mock_client_instance
-
-        async with httpx.AsyncClient() as client:
-            result = await xero_service._get_trial_balance(
-                client,
-                "tenant-123",
-                date(2023, 1, 1),
-                {"access_token": "test-token"},
-            )
-
-        assert result["c563b607-fb0e-4d06-9ddb-76fdeef20ae3"] == 100.0
-
-    @patch("httpx.AsyncClient")
-    async def test_get_accounts(
-        self, mock_client, xero_service, mock_accounts_response
-    ):
-        mock_client_instance = AsyncMock()
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = mock_accounts_response
-        mock_client_instance.get.return_value = mock_response
-        mock_client.return_value.__aenter__.return_value = mock_client_instance
-
-        async with httpx.AsyncClient() as client:
-            result = await xero_service._get_accounts(
-                client,
-                "tenant-123",
-                "ASSET",
-                {"access_token": "test-token"},
-            )
-
-        assert len(result["Accounts"]) == 1
-        assert (
-            result["Accounts"][0]["AccountID"] == "c563b607-fb0e-4d06-9ddb-76fdeef20ae3"
+        request = factory.post(
+            "/api/reports/generate/", data=request_data, format="json"
         )
-        assert result["Accounts"][0]["Name"] == "Test Account"
+        request.user = auth_user
+
+        force_authenticate(request, user=auth_user)
+
+        with patch.object(
+            XeroReportService, "generate_report", new_callable=AsyncMock
+        ) as mock_generate:
+            mock_generate.return_value = mock_report_data
+
+            view = ReportViewSet.as_view({"post": "generate"})
+            response = await view(request)
+            response.render()
+
+            assert response.status_code == status.HTTP_201_CREATED
+            assert "id" in response.data
+
+    async def test_generate_report_token_error(self, authenticated_user):
+        auth_user = await authenticated_user
+        tenant = await XeroTenantFactory.acreate(user=auth_user)
+
+        factory = APIRequestFactory()
+        request_data = {
+            "tenant_name": tenant.tenant_name,
+            "period": "Jan-2023",
+            "account_type": "CURRENT",
+        }
+        request = factory.post(
+            "/api/reports/generate/", data=request_data, format="json"
+        )
+        request.user = auth_user
+
+        force_authenticate(request, user=auth_user)
+
+        with patch.object(
+            XeroReportService, "generate_report", new_callable=AsyncMock
+        ) as mock_generate:
+            mock_generate.side_effect = TokenRefreshError("http://auth.url")
+
+            view = ReportViewSet.as_view({"post": "generate"})
+            response = await view(request)
+            response.render()
+
+            assert response.status_code == status.HTTP_401_UNAUTHORIZED
+            assert "authorization_url" in response.data
+
+    @patch("apps.reports.views.ReportViewSet.permission_classes", [])
+    async def test_generate_report_validation_error(self, authenticated_user):
+        factory = APIRequestFactory()
+        request_data = {
+            "period": "invalid-date",
+            "account_type": "ASSET",
+        }
+        request = factory.post(
+            "/api/reports/generate/", data=request_data, format="json"
+        )
+        request.user = authenticated_user
+
+        view = ReportViewSet.as_view({"post": "generate"})
+        response = await view(request)
+        response.render()
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
